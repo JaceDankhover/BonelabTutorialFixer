@@ -13,17 +13,12 @@ namespace TutorialFixer
 {
     internal partial class Main : MelonMod
     {
-        public override void OnEarlyInitializeMelon()
-        {
-            base.OnEarlyInitializeMelon();
-        }
-
         public override void OnInitializeMelon()
         {
             Hooking.OnLevelInitialized += LevelInitialized;
         }
 
-        [HarmonyPatch(typeof(SLZ.Bonelab.TutorialTrigger))]
+        /*[HarmonyPatch(typeof(SLZ.Bonelab.TutorialTrigger))]
         [HarmonyPatch("OnTriggerEnter")]
         public static class TutorialTriggerPatch
         {
@@ -40,12 +35,14 @@ namespace TutorialFixer
                 controller_right.target_bg_scale = bgMaxScaleNew;
             }
 
-        }
+        }*/
 
         private static IEnumerator ExecuteAfterDelay()
         {
             yield return new WaitForSeconds(0.5f); // Wait for 0.5 seconds
             TutorialRig tutorialRigInstance = Player.rigManager.tutorialRig;
+            ControllerToolTip controller_left = Player.rigManager.tutorialRig.toolTip_left.GetComponent<ControllerToolTip>();
+            ControllerToolTip controller_right = Player.rigManager.tutorialRig.toolTip_right.GetComponent<ControllerToolTip>();
 
             // Send a tutorial pop-up so the game doesnt show nothing upon entering a tooltip trigger
             TutorialRig.InputHighlight inputHighlight1 = TutorialRig.InputHighlight.none;
@@ -62,6 +59,7 @@ namespace TutorialFixer
             Sprite someSprite2 = null;
             AudioClip someAudioClip = null;
             TutorialTrigger someTutorialTrigger = null;
+
             try
             {
                 tutorialRigInstance.CUSTOMTUTORIAL(inputHighlight1, inputHighlight2, locationHighlight1, locationHighlight2, specificHand, someBool, someString1, someString2, someInt, someFloat, someSprite1, someSprite2, someAudioClip, someTutorialTrigger);
@@ -71,6 +69,13 @@ namespace TutorialFixer
             {
                 MelonLogger.Error($"Error starting the tutorial bootstrapper: {ex.Message}");
             }
+            yield return new WaitForSeconds(0.05f); // Wait for 0.5 seconds
+
+            Vector3 bgMaxScaleNew = new Vector3(1.7711f, 0.5631f, 0.8788f);
+            controller_left.max_bg_scale = bgMaxScaleNew;
+            controller_right.max_bg_scale = bgMaxScaleNew;
+            controller_left.target_bg_scale = bgMaxScaleNew;
+            controller_right.target_bg_scale = bgMaxScaleNew;
         }
 
         internal static void LevelInitialized(LevelInfo info)
@@ -81,6 +86,7 @@ namespace TutorialFixer
                 MelonLogger.Msg("Player.rigManager is null. Exiting method.");
                 return;
             }
+
             if (Player.rigManager.tutorialRig == null)
             {
                 MelonLogger.Msg("Player.rigManager.tutorialRig is null. Exiting method.");
@@ -92,49 +98,21 @@ namespace TutorialFixer
                 MelonLogger.Msg("Player.rigManager.tutorialRig.toolTip_left is null. Exiting method.");
                 return;
             }
-            ControllerToolTip controller_left = Player.rigManager.tutorialRig.toolTip_left.GetComponent<ControllerToolTip>();
-            ControllerToolTip controller_right = Player.rigManager.tutorialRig.toolTip_right.GetComponent<ControllerToolTip>();
 
-            if (controller_left == null)
+            if (Player.rigManager.tutorialRig.toolTip_left.GetComponent<ControllerToolTip>() == null)
             {
                 MelonLogger.Msg("ControllerToolTip component not found on left controller. Exiting method.");
                 return;
             }
 
-            if (controller_right == null)
+            if (Player.rigManager.tutorialRig.toolTip_right.GetComponent<ControllerToolTip>() == null)
             {
                 MelonLogger.Msg("ControllerToolTip component not found on right controller. Exiting method.");
                 return;
             }
 
-            Vector3 bgMaxScaleNew = new Vector3(1.7711f, 0.5631f, 0.8788f);
-            controller_left.max_bg_scale = bgMaxScaleNew;
-            controller_right.max_bg_scale = bgMaxScaleNew;
-            controller_left.target_bg_scale = bgMaxScaleNew;
-            controller_right.target_bg_scale = bgMaxScaleNew;
-
-            if (Player.rigManager == null || Player.rigManager.tutorialRig == null)
-            {
-                MelonLogger.Msg("Player.rigManager or Player.rigManager.tutorialRig is null. Exiting method.");
-                return;
-            }
-
             // Start the tutorial bootstrapper
             MelonCoroutines.Start(ExecuteAfterDelay());
-
-        }
-
-        public override void OnLateInitializeMelon()
-        {
-            base.OnLateInitializeMelon();
-        }
-        public override void OnUpdate()
-        {
-            base.OnUpdate();
-        }
-        public override void OnFixedUpdate()
-        {
-            base.OnFixedUpdate();
         }
     }
 }
